@@ -78,43 +78,29 @@ func (c *Client) Dial() error {
 func (c *Client) ReadRoutine() {
 	scanner := bufio.NewScanner(c.Conn)
 
-OUTER:
 	for {
-		select {
-		case <-c.Context.Done():
-			c.CancelCtx()
-			break OUTER
-		default:
-			if !scanner.Scan() {
-				c.CancelCtx()
-				break OUTER
-			}
-			text := scanner.Text()
-			log.Printf("from server: %s\n", text)
+		if !scanner.Scan() {
+			break
 		}
+		text := scanner.Text()
+		log.Printf("from server: %s\n", text)
+
 	}
 	log.Printf("finished ReadRoutine")
 }
 
 func (c *Client) WriteRoutine() {
 	scanner := bufio.NewScanner(os.Stdin)
-OUTER:
 	for {
-		select {
-		case <-c.Context.Done():
-			c.CancelCtx()
-			break OUTER
-		default:
-			if !scanner.Scan() {
-				c.CancelCtx()
-				break OUTER
-			}
-			text := scanner.Text()
-			log.Printf("to server: %s\n", text)
-
-			fmt.Fprintf(c.Conn, "%s\n", text)
+		if !scanner.Scan() {
+			break
 		}
+		text := scanner.Text()
+		log.Printf("to server: %s\n", text)
+
+		fmt.Fprintf(c.Conn, "%s\n", text)
 	}
+
 	log.Printf("finished WriteRoutine")
 }
 
