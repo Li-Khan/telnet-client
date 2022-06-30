@@ -47,12 +47,13 @@ func NewClient(flag Flag) (*Client, error) {
 		Flag: flag,
 	}
 
-	log.Printf("connecting to '%s:%s'", flag.Host, flag.Port)
+	address := fmt.Sprintf("%s:%s", flag.Host, flag.Port)
+	log.Printf("connecting to '%s'", address)
 	err := client.Dial()
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("connected '%s:%s'", flag.Host, flag.Port)
+	log.Printf("connected '%s'", address)
 
 	return &client, nil
 }
@@ -138,7 +139,6 @@ func (c *Client) Start() {
 
 func main() {
 	flag := NewFlag()
-
 	client, err := NewClient(flag)
 	if err != nil {
 		log.Println(err)
