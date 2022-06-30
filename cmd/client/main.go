@@ -62,7 +62,7 @@ func (c *Client) Dial() error {
 	dialer := &net.Dialer{}
 	address := fmt.Sprintf("%s:%s", c.Flag.Host, c.Flag.Port)
 
-	c.Context, c.CancelCtx = context.WithTimeout(context.Background(), c.Flag.Timeout)
+	c.Context, _ = context.WithTimeout(context.Background(), c.Flag.Timeout)
 
 	conn, err := dialer.DialContext(c.Context, "tcp", address)
 	if err != nil {
@@ -80,13 +80,13 @@ func (c *Client) ReadRoutine() {
 
 	for {
 		if !scanner.Scan() {
-			break
+			log.Printf("server stopped")
+			os.Exit(0)
 		}
 		text := scanner.Text()
 		log.Printf("from server: %s\n", text)
 
 	}
-	log.Printf("finished ReadRoutine")
 }
 
 func (c *Client) WriteRoutine() {
