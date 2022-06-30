@@ -12,38 +12,54 @@ import (
 	"time"
 )
 
+type Flag struct {
+	Host    string
+	Port    string
+	Timeout time.Duration
+}
+
 type Client struct {
-	Host      string
-	Port      string
-	Timeout   time.Duration
+	Flag      Flag
 	Dialer    *net.Dialer
 	Conn      net.Conn
 	Context   context.Context
 	CancelCtx context.CancelFunc
 }
 
-func NewClient() *Client {
+func NewFlag() Flag {
 	host := flag.String("h", "127.0.0.1", "network")
 	port := flag.String("p", "8080", "port")
 	timeout := flag.Int("timeout", 10, "timeout for connecting to the server")
 
 	flag.Parse()
 
-	client := Client{
+	flag := Flag{
 		Host:    *host,
 		Port:    *port,
 		Timeout: time.Duration(*timeout) * time.Second,
 	}
 
-	client.DialAndConnection()
-	return &client
+	return flag
 }
 
-func (c *Client) DialAndConnection() error {
-	dialer := &net.Dialer{}
-	address := fmt.Sprintf("%s:%s", c.Host, c.Port)
+func NewClient(flag Flag) (*Client, error) {
+	client := Client{
+		Flag: flag,
+	}
 
-	c.Context, c.CancelCtx = context.WithTimeout(context.Background(), c.Timeout)
+	err := client.Dial()
+	if err != nil {
+		return nil, err
+	}
+
+	return &client, nil
+}
+
+func (c *Client) Dial() error {
+	dialer := &net.Dialer{}
+	address := fmt.Sprintf("%s:%s", c.Flag.Host, c.Flag.Port)
+
+	c.Context, c.CancelCtx = context.WithTimeout(context.Background(), c.Flag.Timeout)
 
 	conn, err := dialer.DialContext(c.Context, "tcp", address)
 	if err != nil {
@@ -63,6 +79,7 @@ OUTER:
 	for {
 		select {
 		case <-c.Context.Done():
+			c.CancelCtx()
 			break OUTER
 		default:
 			if !scanner.Scan() {
@@ -118,6 +135,12 @@ func (c *Client) Start() {
 }
 
 func main() {
-	client := NewClient()
+	flag := NewFlag()
+	client, err := NewClient(flag)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
 	client.Start()
 }
