@@ -7,6 +7,8 @@ import (
 	"net"
 )
 
+const address string = "127.0.0.1:8080"
+
 func handleConnection(conn net.Conn) {
 	defer func() {
 		_ = conn.Close()
@@ -32,21 +34,29 @@ func handleConnection(conn net.Conn) {
 	log.Printf("Closing connection with %s", conn.RemoteAddr())
 }
 
+func start(l net.Listener) error {
+	for {
+		conn, err := l.Accept()
+		if err != nil {
+			return err
+		}
+		go handleConnection(conn)
+	}
+}
+
 func main() {
-	l, err := net.Listen("tcp", ":8080")
+	listener, err := net.Listen("tcp", address)
 	defer func() {
-		_ = l.Close()
+		_ = listener.Close()
 	}()
 	if err != nil {
 		log.Println(err)
 	}
 
-	for {
-		conn, err := l.Accept()
-		if err != nil {
-			log.Println(err)
-			return
-		}
-		go handleConnection(conn)
+	log.Printf("starting server on: %s", address)
+	err = start(listener)
+	if err != nil {
+		log.Println(err)
+		return
 	}
 }
