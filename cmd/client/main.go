@@ -47,10 +47,12 @@ func NewClient(flag Flag) (*Client, error) {
 		Flag: flag,
 	}
 
+	log.Printf("connecting to '%s:%s'", flag.Host, flag.Port)
 	err := client.Dial()
 	if err != nil {
 		return nil, err
 	}
+	log.Printf("connected '%s:%s'", flag.Host, flag.Port)
 
 	return &client, nil
 }
@@ -136,6 +138,7 @@ func (c *Client) Start() {
 
 func main() {
 	flag := NewFlag()
+
 	client, err := NewClient(flag)
 	if err != nil {
 		log.Println(err)
