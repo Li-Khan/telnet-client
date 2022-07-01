@@ -84,8 +84,7 @@ func (c *Client) ReadRoutine() {
 			os.Exit(0)
 		}
 		text := scanner.Text()
-		log.Printf("from server: %s\n", text)
-
+		log.Printf(text)
 	}
 }
 
@@ -96,7 +95,6 @@ func (c *Client) WriteRoutine() {
 			break
 		}
 		text := scanner.Text()
-		log.Printf("to server: %s\n", text)
 
 		fmt.Fprintf(c.Conn, "%s\n", text)
 	}
